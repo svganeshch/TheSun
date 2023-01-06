@@ -280,6 +280,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "dev.comradevanti.wait-for-anim": {
+      "version": "https://github.com/ComradeVanti/UnityWaitForAnim.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "bb6ffd1b085d08b18c76e833f2c237bf794f53ee"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

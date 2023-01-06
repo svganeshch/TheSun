@@ -1,28 +1,79 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject trackerEnemyPreFab;
-    private List<IEnemy> enemyObjects;
+    public Transform[] spawnPoints;
+
+    private Transform player;
+
+    private UIManager uimanager;
+
+    private int score;
+    private int spawnCount = 0;
+    private float spawnWaitTime;
+    private float currentSpawnWaitTime = 0;
+
+    public Toggle spawncheck;
+
+    private void Awake()
+    {
+        player = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        uimanager = GameObject.FindGameObjectWithTag("UIManager").GetComponent<UIManager>();
+    }
+
     void Start()
     {
-        trackerEnemyPreFab = GameObject.Find("Circle");
+        score = uimanager.currentScore;
+        StartCoroutine(SpawnEnemy(spawnPoints[0], 3));
+    }
 
-        for (int i=1; i <= 10; i++)
+    private void Update()
+    {
+        if (spawncheck!= null)
         {
-            GameObject enemyClone = Instantiate(trackerEnemyPreFab, new Vector3(i * 2f, 0, 0), Quaternion.identity);
-            IEnemy enemy = enemyClone.GetComponent<EnemyController>();
-            enemy.Health = i * 100;
-            enemy.Speed = i * 2f; 
+            if (spawncheck.isOn)
+            {
+                Wave1();
+            }
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    void Wave1()
     {
-        
+        spawnWaitTime = 2;
+        currentSpawnWaitTime += Time.deltaTime;
+
+        if (currentSpawnWaitTime > spawnWaitTime)
+        {
+            if (spawnCount <= 3)
+                StartCoroutine(SpawnEnemy(spawnPoints[0], 3));
+            else if (spawnCount <= 2)
+                StartCoroutine(SpawnEnemy(spawnPoints[0], 2));
+            else if (spawnCount <= 1)
+                StartCoroutine(SpawnEnemy(spawnPoints[0], 1));
+
+            currentSpawnWaitTime = 0;
+
+            Debug.Log("Checking wave : " + spawnCount);
+        }
+    }
+
+    public IEnumerator SpawnEnemy(Transform spawnPoint, int spawns)
+    {
+        while (spawns != 0)
+        {
+            yield return new WaitForSeconds(1);
+            Instantiate(trackerEnemyPreFab, spawnPoint.position, Quaternion.identity);
+            spawns--;
+            spawnCount++;
+        }
+    }
+
+    public void EnemyDead()
+    {
+        spawnCount--;
     }
 }

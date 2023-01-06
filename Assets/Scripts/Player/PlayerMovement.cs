@@ -11,20 +11,18 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
     private Animator playerAnimator;
     private Transform playerPosition;
     private Rigidbody2D playerRigidbody;
+    private AudioSource audioSource;
+    public AudioClip dashAudio;
 
     private readonly int count = 1;
 
-    [SerializeField]
-    private float speed = 1f;
+    private float speed;
 
-    [SerializeField]
     private Transform[] tpoints;
 
-    [SerializeField]
-    private float dashSpeed = 1f;
+    private float dashSpeed;
 
-    [SerializeField]
-    private float dashTime = 1f;
+    private float dashTime;
 
     private float currentDashTime;
 
@@ -37,41 +35,41 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
     public Transform PlayerPosition { get => playerPosition; set => playerPosition = value; }
     public Rigidbody2D PlayerRigidbody { get => playerRigidbody; set => playerRigidbody = value; }
 
-    public virtual void UpdateHealth() { }
+    public abstract void InitialiseStart();
+    public virtual void UpdateHealth(float damage) { }
 
     private void Start()
     {
+        audioSource= GetComponent<AudioSource>();
 
-    }
-
-    void Update()
-    {
-        setAnims();
+        InitialiseStart();
     }
 
     public void OnMovement(InputValue readMove)
     {
-        //Debug.Log("value : " + readMove.Get<Vector2>());
+        //Debug.Log("value : " + readMove.Get<Vector2>().normalized);
         x = readMove.Get<Vector2>().x;
         y = readMove.Get<Vector2>().y;
     }
 
-    public void OnJump(InputValue readJump)
+    public void OnDash(InputValue readJump)
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
         Debug.Log("Jump pressed");
-        StartCoroutine(Dash(mousePos - playerPosition.position));
+        StartCoroutine(nameof(Dash));
+        audioSource.PlayOneShot(dashAudio);
+    }
+
+    void Update()
+    {
+        SetAnims();
     }
 
     private void FixedUpdate()
     {
-        //if (x != 0 && y != 0)
-        //    return;
-        playerPosition.position += new Vector3(x, y) * speed * Time.deltaTime;
+        playerPosition.position += speed * Time.deltaTime * new Vector3(x, y);
     }
 
-    public void setAnims()
+    public void SetAnims()
     {
         if (x == 1)
         {
@@ -100,14 +98,14 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
         }
     }
 
-    private IEnumerator Dash(Vector3 direction)
+    private IEnumerator Dash()
     {
         currentDashTime = dashTime;
 
         while (currentDashTime > 0f)
         {
             currentDashTime -= Time.deltaTime;
-            playerRigidbody.velocity = direction * dashSpeed;
+            playerRigidbody.velocity = (new Vector2(x, y) * 5f) * dashSpeed;
             yield return null;
         }
 

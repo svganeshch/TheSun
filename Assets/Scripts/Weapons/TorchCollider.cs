@@ -5,39 +5,64 @@ public class TorchCollider : MonoBehaviour
     private LayerMask enemyLayer;
     private PolygonCollider2D torchCollider;
     private SpriteRenderer torchColliderSprite;
-    private RaycastHit2D detectEnemy;
     private Vector3 enemyPos;
-    private float damage = 10;
+    public float maxDamage = 200;
+    private float damage;
+
+    public float damageTime = 0.5f;
+    private float currentDamageTime;
+
+    private RaycastHit2D detectEnemy;
 
     private IEnemy enemy;
 
-    public virtual void Start()
+    private WeaponTorch torchCharge;
+
+    private void Awake()
     {
-        torchCollider= GetComponentInChildren<PolygonCollider2D>();
-        torchCollider.isTrigger= true;
-
-        torchColliderSprite= GetComponentInChildren<SpriteRenderer>();
-        torchColliderSprite.enabled= false;
-
-        enemyLayer = LayerMask.GetMask("Enemy");
+        torchCharge = GetComponentInParent<WeaponTorch>();
+        torchCollider = GetComponentInChildren<PolygonCollider2D>();
+        torchColliderSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
-    public void OnHitEnemy()
+    public void Start()
     {
-        if (detectEnemy.collider.TryGetComponent<IEnemy>(out enemy)) enemy.Health -= damage;
+        torchCollider.isTrigger= true;
+        torchColliderSprite.enabled= false;
+    }
+
+    public void OnHitEnemy(Collider2D enemyCollider)
+    {
+        currentDamageTime += Time.deltaTime;
+        if (currentDamageTime > damageTime)
+        {
+            if (enemyCollider.TryGetComponent<IEnemy>(out enemy))
+            {
+                enemy.UpdateHealth(damage);
+            }
+            currentDamageTime = 0;
+            Debug.Log("hit enemy");
+        }
     }
 
     private void OnTriggerStay2D(Collider2D collider)
     {
+        if (torchCharge.TorchCharge <= 0) return;
+
         if (collider.CompareTag("Enemy"))
         {
-            //Debug.Log("Enemy inside torch...");
-            detectEnemy = Physics2D.Raycast(transform.position, collider.transform.position - transform.position, 5f, enemyLayer);
+            Debug.Log("Enemy inside torch...");
+            detectEnemy = Physics2D.Raycast(transform.position, collider.transform.position - transform.position);
 
             if (detectEnemy.collider != null)
             {
-                enemyPos= collider.transform.position;
-                OnHitEnemy();
+                enemyPos = collider.transform.position;
+                if (detectEnemy.distance > 2)
+                    damage /= 2;
+                else
+                    damage = maxDamage;
+
+                OnHitEnemy(collider);
             }
         }
     }

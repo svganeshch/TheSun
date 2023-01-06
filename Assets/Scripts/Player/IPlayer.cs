@@ -12,5 +12,5 @@ public interface IPlayer
     Transform PlayerPosition { get; set; }
     Rigidbody2D PlayerRigidbody { get; set; }
 
-    void UpdateHealth();
+    void UpdateHealth(float damage);
 }

@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Weapon
   - UIManager
+  - GetAwayPoints
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - UI
   - Player
   - Enemy
-  - 
+  - Obstacle
   - 
   - 
   - 
@@ -54,4 +55,13 @@ TagManager:
     locked: 0
   - name: Foliage
     uniqueID: 2759118305
+    locked: 0
+  - name: Player
+    uniqueID: 560417171
+    locked: 0
+  - name: Enemy
+    uniqueID: 4156189449
+    locked: 0
+  - name: HUD
+    uniqueID: 3985410123
     locked: 0

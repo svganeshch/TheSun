@@ -3,57 +3,61 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
 
-
-[System.Serializable]
-public class TorchEvent : UnityEvent<float>
-{
-}
+public class TorchEvent : UnityEvent<float> {}
 
 public class WeaponTorch : MonoBehaviour
 {
-    public GameObject player;
-    private GameObject wand;
+    private Transform wandOrigPos;
+
     private Rigidbody2D wandRB;
     private GameObject torch;
-    public Transform wandOrigPos;
 
-    public bool isThrown = false;
-    public bool isGrab = false;
+    private bool isThrown = false;
+    private bool isGrab = false;
 
     private Vector3 mousePos;
 
     private float torchCharge = 1000;
     private float defaultTorchCharge;
     private float dischargeTime = 3;
+    private float currentTorchTime;
+    public float throwSpeed = 400;
+    public float grabSpeed = 400;
 
-    public Coroutine torchCoroutine;
-    public Light2D torchIntensity;
-    public float defaultTorchIntensity;
-    public float defaultPercentageDown = 10;
+    private Light2D torchIntensity;
+    private float defaultTorchIntensity;
+    public float defaultPercentageDown = 5f;
 
-    public TorchEvent torchEvent;
-    public UIManager uimanager;
+    private TorchEvent torchEvent;
+    private UIManager uimanager;
+
+    public float TorchCharge { get { return torchCharge; }  }
+
+    private void Awake()
+    {
+        wandOrigPos = transform.parent.transform;
+
+        wandRB = GetComponent<Rigidbody2D>();
+        torch = GameObject.Find("torch");
+        torchIntensity = torch.GetComponent<Light2D>();
+        uimanager = GameObject.FindGameObjectWithTag("UIManager").GetComponent<UIManager>();
+    }
 
     public void Start()
     {
-        wand = GameObject.Find("wand");
-        wandRB = wand.GetComponent<Rigidbody2D>();
-        torch = GameObject.Find("torch");
-        torchIntensity = torch.GetComponent<Light2D>();
         defaultTorchCharge = torchCharge;
         defaultTorchIntensity = torchIntensity.intensity;
 
-        if (torchEvent == null)
-            torchEvent = new TorchEvent();
+        torchEvent ??= new TorchEvent();
         torchEvent.AddListener(uimanager.SetTorchBar);
     }
 
-    void Update()
+    public void Update()
     {
         SetTorchEnable();
 
         if (!isThrown)
-            SetWandPos();
+            SetWandDirection();
 
         if (Input.GetMouseButtonDown(1) && !isGrab && !isThrown)
         {
@@ -63,7 +67,13 @@ public class WeaponTorch : MonoBehaviour
         {
             isGrab = true;
         }
-        else if (isThrown && !isGrab)
+
+        TrackTorchCharge();
+    }
+
+    private void FixedUpdate()
+    {
+        if (isThrown && !isGrab)
         {
             ThrowWand();
         }
@@ -71,8 +81,6 @@ public class WeaponTorch : MonoBehaviour
         {
             GrabWand();
         }
-
-         TrackTorchCharge();
     }
 
     void SetTorchEnable()
@@ -83,13 +91,13 @@ public class WeaponTorch : MonoBehaviour
         }
     }
 
-    void SetWandPos()
+    void SetWandDirection()
     {
         mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 mouseDir = (mousePos - wand.transform.position).normalized;
+        Vector2 mouseDir = (mousePos - transform.position).normalized;
 
         float mouseAngle = Vector2.SignedAngle(Vector2.up, mouseDir);
-        wand.transform.eulerAngles = new Vector3(0, 0, mouseAngle);
+        transform.eulerAngles = new Vector3(0, 0, mouseAngle);
     }
 
     void ThrowWand()
@@ -99,17 +107,21 @@ public class WeaponTorch : MonoBehaviour
         isGrab = false;
         transform.parent = null;
 
-        wand.transform.position = Vector2.MoveTowards(wand.transform.position, wand.transform.position + (mousePos - wand.transform.position).normalized, 5f * Time.deltaTime);
+        Vector3 throwTarget = transform.position + (mousePos - transform.position).normalized;
+        transform.position = Vector2.MoveTowards(transform.position, throwTarget, throwSpeed * Time.fixedDeltaTime);
+
+        if (transform.position == throwTarget)
+            wandRB.isKinematic = true;
 
         Debug.Log("torch thrown!!");
     }
 
     void GrabWand()
     {
-        wand.transform.position = Vector2.MoveTowards(wand.transform.position, wandOrigPos.position, 10f * Time.deltaTime);
+        transform.position = Vector2.MoveTowards(transform.position, wandOrigPos.position, grabSpeed * Time.fixedDeltaTime);
         Debug.Log("grabbing torch");
 
-        if (wand.transform.position == wandOrigPos.position)
+        if (transform.position == wandOrigPos.position)
         {
             wandRB.isKinematic = true;
             isThrown = false;
@@ -118,38 +130,50 @@ public class WeaponTorch : MonoBehaviour
         }
     }
 
-    float tmpTimer;
     void TrackTorchCharge()
     {
         if (torch.activeSelf && torchCharge > 0)
         {
-            tmpTimer += Time.deltaTime;
-            if (tmpTimer > dischargeTime)
+            currentTorchTime += Time.deltaTime;
+            if (currentTorchTime > dischargeTime)
             {
-                torchCharge -= getTorchPercentage(defaultPercentageDown);
-                torchIntensity.intensity -=  getTorchIntensityPercentage(getTorchPercentage(defaultPercentageDown));
+                torchCharge -= GetTorchPercentage(defaultPercentageDown);
+                float currentIntensity = torchIntensity.intensity - Mathf.Abs(GetTorchIntensityPercentage(GetTorchPercentage(defaultPercentageDown)));
+                torchIntensity.intensity = currentIntensity < 0 ? 0 : currentIntensity;
+                torchCharge = torchIntensity.intensity <= 0 ? 0 : torchCharge;
                 
-                tmpTimer = 0;
-                torchEvent.Invoke(torchCharge / defaultTorchCharge);
+                currentTorchTime = 0;
             }
-            
+        }
+
+        if (torchCharge >= 0)
+        {
+            torchEvent.Invoke(torchCharge / defaultTorchCharge);
             Debug.Log("Torch charge : " + torchCharge);
         }
     }
 
-    float getTorchPercentage(float percentageDown)
+    float GetTorchPercentage(float percentageDown)
     {
         return (defaultTorchCharge / 100) * percentageDown;
     }
 
-    float getTorchIntensityPercentage(float percentageDown)
+    float GetTorchIntensityPercentage(float percentageDown)
     {
         return (percentageDown * defaultTorchIntensity) / defaultTorchCharge;
     }
 
-    IEnumerator DischargeTorch()
+    public void ChargeTorch(float chargeAmount)
     {
-        torchCharge -= 1;
-        yield return new WaitForSeconds(dischargeTime);
+        Debug.Log("charging torch");
+        if (torchCharge < defaultTorchCharge)
+        {
+            torchCharge += chargeAmount;
+
+            float currentIntensity = torchIntensity.intensity + Mathf.Abs(GetTorchIntensityPercentage(GetTorchPercentage(defaultPercentageDown)));
+            torchIntensity.intensity = currentIntensity > defaultTorchIntensity ? defaultTorchIntensity : currentIntensity;
+
+            if (torchCharge > defaultTorchCharge) torchCharge = defaultTorchCharge;
+        }
     }
 }
