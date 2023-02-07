@@ -6,7 +6,7 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
 {
     private float health;
     private float healthMax;
-    private float x, y;
+    private Vector2 movementDirection;
 
     private Animator playerAnimator;
     private Transform playerPosition;
@@ -26,6 +26,10 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
 
     private float currentDashTime;
 
+    private MyInputActions inputActions;
+    private InputAction movementAction;
+    private InputAction dashAction;
+
     public float Health { get => health; set => health = value; }
     public float HealthMax { get => healthMax; set => healthMax = value; }
     public float Speed { get => speed; set => speed = value; }
@@ -35,58 +39,54 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
     public Transform PlayerPosition { get => playerPosition; set => playerPosition = value; }
     public Rigidbody2D PlayerRigidbody { get => playerRigidbody; set => playerRigidbody = value; }
 
-    public abstract void InitialiseStart();
     public virtual void UpdateHealth(float damage) { }
 
-    private void Start()
+    public virtual void Awake()
+    {
+        inputActions = new MyInputActions();
+    }
+
+    public virtual void Start()
     {
         audioSource= GetComponent<AudioSource>();
-
-        InitialiseStart();
     }
 
-    public void OnMovement(InputValue readMove)
+    void Update()
     {
-        //Debug.Log("value : " + readMove.Get<Vector2>().normalized);
-        x = readMove.Get<Vector2>().x;
-        y = readMove.Get<Vector2>().y;
+        movementDirection = movementAction.ReadValue<Vector2>();
+        SetAnims();
     }
 
-    public void OnDash(InputValue readJump)
+    private void FixedUpdate()
+    {
+        playerPosition.position += speed * Time.deltaTime * new Vector3(movementDirection.x, movementDirection.y);
+    }
+
+    public void DashAction(InputAction.CallbackContext context)
     {
         Debug.Log("Jump pressed");
         StartCoroutine(nameof(Dash));
         audioSource.PlayOneShot(dashAudio);
     }
 
-    void Update()
-    {
-        SetAnims();
-    }
-
-    private void FixedUpdate()
-    {
-        playerPosition.position += speed * Time.deltaTime * new Vector3(x, y);
-    }
-
     public void SetAnims()
     {
-        if (x == 1)
+        if (movementDirection.x == 1)
         {
             playerAnimator.Play("walk_right");
             //Debug.Log("Playing right anim");
         }
-        else if (x == -1)
+        else if (movementDirection.x == -1)
         {
             playerAnimator.Play("walk_left");
             //Debug.Log("Playing left anim");
         }
-        else if (y == 1)
+        else if (movementDirection.y == 1)
         {
             playerAnimator.Play("walk_forward");
             //Debug.Log("Playing forward anim");
         }
-        else if (y == -1)
+        else if (movementDirection.y == -1)
         {
             playerAnimator.Play("walk_down");
             //Debug.Log("Playing down anim");
@@ -105,7 +105,7 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
         while (currentDashTime > 0f)
         {
             currentDashTime -= Time.deltaTime;
-            playerRigidbody.velocity = (new Vector2(x, y) * 5f) * dashSpeed;
+            playerRigidbody.velocity = (new Vector2(movementDirection.x, movementDirection.y) * 5f) * dashSpeed;
             yield return null;
         }
 
@@ -141,5 +141,21 @@ public abstract class PlayerMovement : MonoBehaviour, IPlayer
     IEnumerator WaitForTeleport()
     {
         yield return new WaitForSeconds(count);
+    }
+
+    private void OnEnable()
+    {
+        movementAction = inputActions.Player.Movement;
+        movementAction.Enable();
+
+        dashAction = inputActions.Player.Dash;
+        dashAction.Enable();
+        dashAction.performed += DashAction;
+    }
+
+    private void OnDisable()
+    {
+        movementAction.Disable();
+        dashAction.Disable();
     }
 }

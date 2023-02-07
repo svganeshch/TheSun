@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 
 public class TorchEvent : UnityEvent<float> {}
@@ -16,6 +17,7 @@ public class WeaponTorch : MonoBehaviour
     private bool isGrab = false;
 
     private Vector3 mousePos;
+    private Vector3 mousePosDir;
 
     private float torchCharge = 1000;
     private float defaultTorchCharge;
@@ -31,6 +33,11 @@ public class WeaponTorch : MonoBehaviour
     private TorchEvent torchEvent;
     private UIManager uimanager;
 
+    private MyInputActions inputActions;
+    private InputAction enableTorchAction;
+    private InputAction throwGrabAction;
+    private InputAction mousePositionAction;
+
     public float TorchCharge { get { return torchCharge; }  }
 
     private void Awake()
@@ -41,6 +48,8 @@ public class WeaponTorch : MonoBehaviour
         torch = GameObject.Find("torch");
         torchIntensity = torch.GetComponent<Light2D>();
         uimanager = GameObject.FindGameObjectWithTag("UIManager").GetComponent<UIManager>();
+
+        inputActions= new MyInputActions();
     }
 
     public void Start()
@@ -54,19 +63,10 @@ public class WeaponTorch : MonoBehaviour
 
     public void Update()
     {
-        SetTorchEnable();
+        mousePos = mousePositionAction.ReadValue<Vector2>();
 
         if (!isThrown)
             SetWandDirection();
-
-        if (Input.GetMouseButtonDown(1) && !isGrab && !isThrown)
-        {
-            isThrown = true;
-        }
-        else if (Input.GetMouseButtonDown(1) && isThrown)
-        {
-            isGrab = true;
-        }
 
         TrackTorchCharge();
     }
@@ -83,18 +83,31 @@ public class WeaponTorch : MonoBehaviour
         }
     }
 
-    void SetTorchEnable()
+    public void ThrowGrabAction(InputAction.CallbackContext context)
     {
-        if (Input.GetMouseButtonDown(0))
+        Debug.Log("clicked throw grab");
+        if (!isGrab && !isThrown)
         {
-            torch.SetActive(!torch.activeSelf);
+            isThrown = true;
+            Debug.Log("clicked : Throw");
         }
+        else if (isThrown)
+        {
+            isGrab = true;
+            Debug.Log("clicked : Grab");
+        }
+    }
+
+    public void TorchEnableAction(InputAction.CallbackContext context)
+    {
+        torch.SetActive(!torch.activeSelf);
+        Debug.Log("clicked : torch enable");
     }
 
     void SetWandDirection()
     {
-        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 mouseDir = (mousePos - transform.position).normalized;
+        mousePosDir = Camera.main.ScreenToWorldPoint(mousePos);
+        Vector2 mouseDir = (mousePosDir - transform.position).normalized;
 
         float mouseAngle = Vector2.SignedAngle(Vector2.up, mouseDir);
         transform.eulerAngles = new Vector3(0, 0, mouseAngle);
@@ -107,11 +120,8 @@ public class WeaponTorch : MonoBehaviour
         isGrab = false;
         transform.parent = null;
 
-        Vector3 throwTarget = transform.position + (mousePos - transform.position).normalized;
+        Vector3 throwTarget = transform.position + (mousePosDir - transform.position).normalized;
         transform.position = Vector2.MoveTowards(transform.position, throwTarget, throwSpeed * Time.fixedDeltaTime);
-
-        if (transform.position == throwTarget)
-            wandRB.isKinematic = true;
 
         Debug.Log("torch thrown!!");
     }
@@ -175,5 +185,29 @@ public class WeaponTorch : MonoBehaviour
 
             if (torchCharge > defaultTorchCharge) torchCharge = defaultTorchCharge;
         }
+    }
+
+    private void OnEnable()
+    {
+        inputActions.Enable();
+
+        throwGrabAction = inputActions.Player.ThrowGrab;
+        throwGrabAction.Enable();
+        throwGrabAction.performed += ThrowGrabAction;
+
+        enableTorchAction = inputActions.Player.EnableTorch;
+        enableTorchAction.Enable();
+        enableTorchAction.performed += TorchEnableAction;
+
+        mousePositionAction = inputActions.Player.MousePosition;
+        mousePositionAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+        inputActions.Disable();
+        throwGrabAction.Disable();
+        enableTorchAction.Disable();
+        mousePositionAction.Disable();
     }
 }

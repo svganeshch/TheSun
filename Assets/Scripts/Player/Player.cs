@@ -12,7 +12,7 @@ public class Player : PlayerMovement
     public PlayerEvent playerEvent;
     private UIManager uimanager;
 
-    public void Awake()
+    public override void Awake()
     {
         PlayerAnimator = GetComponent<Animator>();
         PlayerPosition = GetComponent<Transform>();
@@ -22,15 +22,19 @@ public class Player : PlayerMovement
         playerEvent = new PlayerEvent();
         playerEvent.AddListener(UpdateHealth);
         playerEvent.AddListener(uimanager.SetPlayerHealthBar);
+
+        base.Awake();
     }
 
-    public override void InitialiseStart()
+    public override void Start()
     {
         HealthMax = 1000;
         Health = HealthMax;
         Speed = 75;
         DashSpeed = 15f;
         DashTime = 0.5f;
+
+        base.Start();
     }
 
     public override void UpdateHealth(float damage)

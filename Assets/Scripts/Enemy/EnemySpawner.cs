@@ -43,17 +43,18 @@ public class EnemySpawner : MonoBehaviour
 
     void Wave1()
     {
+        int spawnPoint = Random.Range(0, spawnPoints.Length);
         spawnWaitTime = 2;
         currentSpawnWaitTime += Time.deltaTime;
 
         if (currentSpawnWaitTime > spawnWaitTime)
         {
             if (spawnCount <= 3)
-                StartCoroutine(SpawnEnemy(spawnPoints[0], 3));
+                StartCoroutine(SpawnEnemy(spawnPoints[spawnPoint], 3));
             else if (spawnCount <= 2)
-                StartCoroutine(SpawnEnemy(spawnPoints[0], 2));
+                StartCoroutine(SpawnEnemy(spawnPoints[spawnPoint], 2));
             else if (spawnCount <= 1)
-                StartCoroutine(SpawnEnemy(spawnPoints[0], 1));
+                StartCoroutine(SpawnEnemy(spawnPoints[spawnPoint], 1));
 
             currentSpawnWaitTime = 0;
 

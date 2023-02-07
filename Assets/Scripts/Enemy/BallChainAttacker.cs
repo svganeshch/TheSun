@@ -10,6 +10,6 @@ public class BallChainAttacker : EnemyController
         Health = HealthMax;
         Speed = 50;
         DetectionRange = 50;
-        DamageAmount = 100;
+        DamageAmount = 50;
     }
 }

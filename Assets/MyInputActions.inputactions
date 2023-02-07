@@ -24,18 +24,9 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Throw",
+                    "name": "ThrowGrab",
                     "type": "Button",
                     "id": "e48a466e-9f5c-4d6f-970f-aaa3d696f0a9",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Grab",
-                    "type": "Button",
-                    "id": "b9c8dee0-1d80-47c2-b380-d06a2517add4",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -49,6 +40,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "MousePosition",
+                    "type": "Value",
+                    "id": "0af0bb9f-dd04-4f71-9088-9395b8d5c72f",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -218,6 +218,61 @@
                     "isPartOfComposite": true
                 },
                 {
+                    "name": "Xbox",
+                    "id": "635263fb-ce11-47cf-ab1e-152cd585a2e0",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "288381c0-8cfc-436e-8ef2-7c1812fd32f2",
+                    "path": "<XInputController>/leftStick/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "0592dde2-b724-4797-9c6b-27b9dd3c1e77",
+                    "path": "<XInputController>/leftStick/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "f5d6cd12-0424-4202-bcca-ce2861f5fe6c",
+                    "path": "<XInputController>/leftStick/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "b6351c68-a9bf-4993-9398-a0b30410a08b",
+                    "path": "<XInputController>/leftStick/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
                     "name": "",
                     "id": "d033d567-68f8-45cb-8d64-35c9ef450f4b",
                     "path": "<Keyboard>/space",
@@ -231,7 +286,7 @@
                 {
                     "name": "",
                     "id": "f475dbef-eb29-4037-9e4f-0af7c8cc3cd7",
-                    "path": "<XInputController>/rightTrigger",
+                    "path": "<XInputController>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -246,18 +301,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Throw",
+                    "action": "ThrowGrab",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "e3834717-4da2-4b0b-8a79-cffc81af4efa",
-                    "path": "<Gamepad>/leftTrigger",
+                    "path": "<XInputController>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Throw",
+                    "action": "ThrowGrab",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -275,7 +330,7 @@
                 {
                     "name": "",
                     "id": "7bd92b76-1ba7-4d1b-9d75-4584a325b9ed",
-                    "path": "<XInputController>/buttonSouth",
+                    "path": "<XInputController>/rightShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -285,23 +340,51 @@
                 },
                 {
                     "name": "",
-                    "id": "2118ccb6-a29b-4906-af2c-1a8439f7fe67",
-                    "path": "<Mouse>/rightButton",
+                    "id": "d0b24024-c8b8-4940-a1d2-38f34db20e7e",
+                    "path": "<Mouse>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grab",
+                    "action": "MousePosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "c20f332b-ac93-42b9-a107-de409b83c25b",
+            "actions": [
+                {
+                    "name": "Pause",
+                    "type": "Button",
+                    "id": "77ecfe04-292b-43f4-876c-84649e2f57a3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "988094cb-2704-421f-92e3-01d90d53b20f",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "f91dfc5d-7dc1-4327-afb7-d2428e05d50d",
-                    "path": "<Gamepad>/leftTrigger",
+                    "id": "b248c589-894f-48ca-88ae-0ddcb77defd8",
+                    "path": "<XInputController>/start",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grab",
+                    "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -253,14 +253,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyMaxHealth: 1000
-  damageAmount: 100
+  damageAmount: 50
   speed: 50
   detectionRange: 50
+  enemyMedia: []
   enemyHealthBar: {fileID: 5967131977171572707}
   uimanager: {fileID: 0}
   battery: {fileID: 1746845338492856133, guid: e466ff8c17997e640a8461b994ed0f0a, type: 3}
   enemySpawner: {fileID: 5962319254354633348, guid: 05a9e5d765aec30409bddde5151b07a3, type: 3}
-  MyGetAwayPoints: {fileID: 5699076749995555352, guid: 11f8f81b7cc41414fb962eb06d983465, type: 3}
 --- !u!95 &1581375215
 Animator:
   serializedVersion: 5
